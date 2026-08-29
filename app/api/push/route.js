@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
+import { neon } from "@neondatabase/serverless";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const privateKey = process.env.VAPID_PRIVATE_KEY;
 const subject = process.env.VAPID_SUBJECT;
+const databaseUrl = process.env.DATABASE_URL;
 
 if (publicKey && privateKey && subject) {
   webpush.setVapidDetails(
@@ -13,8 +15,22 @@ if (publicKey && privateKey && subject) {
   );
 }
 
-// 현재는 테스트용 임시 저장소
-let subscriptions = [];
+const sql = databaseUrl ? neon(databaseUrl) : null;
+
+async function initDatabase() {
+  if (!sql) {
+    throw new Error("DATABASE_URL이 설정되지 않았습니다.");
+  }
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id SERIAL PRIMARY KEY,
+      endpoint TEXT UNIQUE NOT NULL,
+      subscription JSONB NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+}
 
 export async function POST(request) {
   try {
@@ -23,6 +39,16 @@ export async function POST(request) {
         {
           ok: false,
           error: "VAPID 환경변수가 설정되지 않았습니다."
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!databaseUrl) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "DATABASE_URL이 설정되지 않았습니다."
         },
         { status: 500 }
       );
@@ -40,13 +66,21 @@ export async function POST(request) {
       );
     }
 
-    const exists = subscriptions.some(
-      item => item.endpoint === subscription.endpoint
-    );
+    await initDatabase();
 
-    if (!exists) {
-      subscriptions.push(subscription);
-    }
+    await sql`
+      INSERT INTO push_subscriptions (
+        endpoint,
+        subscription
+      )
+      VALUES (
+        ${subscription.endpoint},
+        ${JSON.stringify(subscription)}::jsonb
+      )
+      ON CONFLICT (endpoint)
+      DO UPDATE SET
+        subscription = EXCLUDED.subscription
+    `;
 
     return NextResponse.json({
       ok: true,
@@ -67,7 +101,6 @@ export async function POST(request) {
 }
 
 
-// 🔔 테스트 알림 발송
 export async function GET() {
   try {
     if (!publicKey || !privateKey || !subject) {
@@ -80,7 +113,24 @@ export async function GET() {
       );
     }
 
-    if (subscriptions.length === 0) {
+    if (!databaseUrl) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "DATABASE_URL이 설정되지 않았습니다."
+        },
+        { status: 500 }
+      );
+    }
+
+    await initDatabase();
+
+    const rows = await sql`
+      SELECT subscription
+      FROM push_subscriptions
+    `;
+
+    if (rows.length === 0) {
       return NextResponse.json(
         {
           ok: false,
@@ -98,10 +148,10 @@ export async function GET() {
 
     const results = [];
 
-    for (const subscription of subscriptions) {
+    for (const row of rows) {
       try {
         await webpush.sendNotification(
-          subscription,
+          row.subscription,
           payload
         );
 
