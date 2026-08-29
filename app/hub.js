@@ -11,6 +11,12 @@ export default function Hub(){
 
   useEffect(()=>{ fetch("/api/youtube").then(r=>r.json()).then(setData).catch(e=>setData({loading:false,error:e.message,videos:[],live:null})); },[]);
 
+useEffect(() => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(console.error);
+  }
+}, []);
+
   const go=url=>window.open(url,"_blank","noopener,noreferrer");
   const fmt=d=>d?new Date(d).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"";
 
@@ -59,5 +65,38 @@ export default function Hub(){
 }
 function Video({v,go,fmt}){return <div className="video" onClick={()=>go(v.url)}><img src={v.thumbnail} /><div><h3>{v.title}</h3><span>{fmt(v.publishedAt)} · 조회수 {v.views??"-"}</span></div></div>}
 function Item({icon,title,text,time}){return <div className="item"><i>{icon}</i><div><b>{title}</b><small>{text}</small></div><em>{time}</em></div>}
-function Setting({t}){const [on,setOn]=useState(true);return <div className="setting"><b>{t}</b><button className={"switch "+(on?"on":"")} onClick={()=>setOn(!on)}><span/></button></div>}
-function Back({setPage}){return <button className="back" onClick={()=>setPage("home")}>← 홈으로</button>}
+function Setting({t}){
+  const [on,setOn]=useState(false);
+
+  const toggle=async()=>{
+    if(on){
+      setOn(false);
+      return;
+    }
+
+    if(!("Notification" in window)){
+      alert("이 브라우저에서는 알림을 지원하지 않습니다.");
+      return;
+    }
+
+    const permission=await Notification.requestPermission();
+
+    if(permission==="granted"){
+      setOn(true);
+    }else{
+      alert("알림 권한이 허용되지 않았습니다.");
+    }
+  };
+
+  return (
+    <div className="setting">
+      <b>{t}</b>
+      <button
+        className={"switch "+(on?"on":"")}
+        onClick={toggle}
+      >
+        <span/>
+      </button>
+    </div>
+  );
+}
