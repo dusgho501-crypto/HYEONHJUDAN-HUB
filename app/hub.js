@@ -302,11 +302,75 @@ function Setting({ t }) {
   const [on, setOn] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const checkSubscription = async () => {
+      try {
+        if (!("serviceWorker" in navigator)) return;
+        if (!("PushManager" in window)) return;
+
+        const permission = Notification.permission;
+
+        if (permission !== "granted") {
+          if (mounted) setOn(false);
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const subscription =
+          await registration.pushManager.getSubscription();
+
+        if (mounted) {
+          setOn(!!subscription);
+        }
+      } catch (error) {
+        console.error("Push subscription 확인 실패:", error);
+
+        if (mounted) {
+          setOn(false);
+        }
+      }
+    };
+
+    checkSubscription();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const toggle = async () => {
     if (loading) return;
 
     if (on) {
-      setOn(false);
+      try {
+        setLoading(true);
+
+        const registration =
+          await navigator.serviceWorker.ready;
+
+        const subscription =
+          await registration.pushManager.getSubscription();
+
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+
+        setOn(false);
+
+        alert("🔕 알림이 꺼졌습니다.");
+      } catch (error) {
+        console.error(error);
+
+        alert(
+          error.message ||
+            "알림을 끄는 중 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
+
       return;
     }
 
@@ -325,33 +389,42 @@ function Setting({ t }) {
         );
       }
 
-      const permission =
-        await Notification.requestPermission();
+      let permission = Notification.permission;
+
+      if (permission !== "granted") {
+        permission =
+          await Notification.requestPermission();
+      }
 
       if (permission !== "granted") {
         throw new Error(
-          "알림 권한이 허용되지 않았습니다."
+          "알림 권한을 허용하지 않았습니다."
         );
       }
 
       const registration =
         await navigator.serviceWorker.ready;
 
-      const publicKey =
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      let subscription =
+        await registration.pushManager.getSubscription();
 
-      if (!publicKey) {
-        throw new Error(
-          "VAPID Public Key가 설정되지 않았습니다."
-        );
+      if (!subscription) {
+        const publicKey =
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+        if (!publicKey) {
+          throw new Error(
+            "VAPID Public Key가 설정되지 않았습니다."
+          );
+        }
+
+        subscription =
+          await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey:
+              publicKeyToUint8Array(publicKey),
+          });
       }
-
-      const subscription =
-        await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey:
-            publicKeyToUint8Array(publicKey),
-        });
 
       const response = await fetch("/api/push", {
         method: "POST",
@@ -397,36 +470,5 @@ function Setting({ t }) {
         <span />
       </button>
     </div>
-  );
-}
-
-function publicKeyToUint8Array(base64String) {
-  const padding =
-    "=".repeat(
-      (4 - (base64String.length % 4)) % 4
-    );
-
-  const base64 =
-    (base64String + padding)
-      .replace(/-/g, "+")
-      .replace(/_/g, "/");
-
-  const rawData = window.atob(base64);
-
-  return Uint8Array.from(
-    [...rawData].map((char) =>
-      char.charCodeAt(0)
-    )
-  );
-}
-
-function Back({ setPage }) {
-  return (
-    <button
-      className="back"
-      onClick={() => setPage("home")}
-    >
-      ← 홈으로
-    </button>
   );
 }
