@@ -5,6 +5,7 @@ import "./style.css";
 
 const CHANNEL = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL;
 const TOONATION = process.env.NEXT_PUBLIC_TOONATION_URL;
+const COMMUNITY = "https://www.youtube.com/channel/UCltJz_jkCxQxd2mTqrn3Lfg/community";
 
 export default function Hub() {
   const [data, setData] = useState({
@@ -41,7 +42,7 @@ export default function Hub() {
 
   const go = (url) => {
     if (!url) return;
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.location.href = url;
   };
 
   const fmt = (d) => {
@@ -168,7 +169,7 @@ export default function Hub() {
 
                 <button
                   onClick={() =>
-                    go(CHANNEL + "/community")
+                    go(COMMUNITY)
                   }
                 >
                   YouTube에서 보기 ›
@@ -315,7 +316,7 @@ export default function Hub() {
 
         <button
           onClick={() =>
-            go(CHANNEL + "/community")
+            go(COMMUNITY)
           }
         >
           ▢
@@ -566,3 +567,4 @@ function Back({ setPage }) {
     </button>
   );
 }
+
