@@ -259,6 +259,12 @@ export async function GET() {
       error: isQuotaError
         ? "YouTube 최신 정보를 잠시 불러오지 못하고 있습니다."
         : "YouTube 최신 정보를 불러오지 못했습니다.",
+      debug: {
+        status: error?.status || null,
+        reason: error?.reason || null,
+        message: error?.message || null,
+      },
     });
   }
 }
+
