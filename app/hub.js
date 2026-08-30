@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import "./style.css";
@@ -18,7 +18,10 @@ export default function Hub() {
 
   useEffect(() => {
     fetch("/api/youtube")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("YouTube API 응답 오류");
+        return r.json();
+      })
       .then(setData)
       .catch((e) =>
         setData({
@@ -32,9 +35,7 @@ export default function Hub() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .catch(console.error);
+      navigator.serviceWorker.register("/sw.js").catch(console.error);
     }
   }, []);
 
@@ -43,15 +44,16 @@ export default function Hub() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const fmt = (d) =>
-    d
-      ? new Date(d).toLocaleString("ko-KR", {
-          month: "numeric",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "";
+  const fmt = (d) => {
+    if (!d) return "";
+
+    return new Date(d).toLocaleString("ko-KR", {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="app">
@@ -59,6 +61,7 @@ export default function Hub() {
         <button
           className="bell"
           onClick={() => setPage("settings")}
+          aria-label="알림 설정"
         >
           🔔
         </button>
@@ -66,6 +69,7 @@ export default function Hub() {
         <div className="avatar">💜</div>
 
         <h1>현주님 HUB</h1>
+
         <p>현주님의 모든 소식을 한 곳에서 💜</p>
       </header>
 
@@ -73,17 +77,16 @@ export default function Hub() {
         {page === "home" && (
           <>
             <section
-              className={
-                "card live " + (data.live ? "on" : "")
-              }
+              className={"card live " + (data.live ? "on" : "")}
             >
               <div className="liveTop">
                 <span className="dot"></span>
+
                 LIVE
 
                 <span className="badge">
                   {data.live
-                    ? "지금 방송 중"
+                    ? "지금 방송 중!"
                     : "현재 방송 없음"}
                 </span>
               </div>
@@ -95,8 +98,8 @@ export default function Hub() {
 
               <p>
                 {data.live
-                  ? "지금 바로 만나보세요 💜"
-                  : "라이브가 시작되면 자동으로 표시됩니다."}
+                  ? "지금 바로 만나보세요 ✨"
+                  : "새 라이브가 시작되면 이곳에 자동으로 표시됩니다."}
               </p>
 
               <button
@@ -106,34 +109,35 @@ export default function Hub() {
                 }
               >
                 {data.live
-                  ? "📺 라이브 보러가기"
-                  : "🎬 YouTube 채널 보기"}
+                  ? "🔴 라이브 보러가기 →"
+                  : "▶️ YouTube 채널 보기 →"}
               </button>
             </section>
 
             <section className="card channel">
               <div>
-                <b>🎬 현주님 YouTube</b>
+                <b>▶️ 현주님 YouTube</b>
+
                 <small>실제 채널과 연결됨</small>
               </div>
 
               <button onClick={() => go(CHANNEL)}>
-                채널 보기 →
+                채널 열기 ↗
               </button>
             </section>
 
             <section className="card">
               <div className="title">
-                🆕 최신 영상
+                🎥 최신 영상
 
                 <button onClick={() => setPage("videos")}>
-                  더보기 →
+                  더보기 ›
                 </button>
               </div>
 
               {data.loading ? (
                 <div className="skeleton" />
-              ) : (
+              ) : data.videos.length > 0 ? (
                 data.videos
                   .slice(0, 3)
                   .map((v) => (
@@ -144,47 +148,90 @@ export default function Hub() {
                       fmt={fmt}
                     />
                   ))
+              ) : (
+                <p className="muted">
+                  아직 표시할 영상이 없습니다.
+                </p>
               )}
 
               {data.error && (
                 <p className="error">
-                  YouTube API 연결 오류: {data.error}
+                  YouTube API 연결 준비가 필요합니다:{" "}
+                  {data.error}
                 </p>
               )}
             </section>
 
             <section className="card post">
               <div className="title">
-                💬 게시판
+                📝 게시물
 
                 <button
                   onClick={() =>
                     go(CHANNEL + "/community")
                   }
                 >
-                  YouTube에서 보기 →
+                  YouTube에서 보기 ›
                 </button>
               </div>
 
               <p>
-                현주님의 최신 소식과 커뮤니티를 확인해보세요.
+                <b>커뮤니티 게시물 자동 연동 준비 영역</b>
+              </p>
+
+              <p className="muted">
+                YouTube Data API에서 일반 영상과 같은 방식으로
+                커뮤니티 게시물을 안정적으로 제공하지 않으므로,
+                우선 실제 커뮤니티 페이지로 연결합니다.
               </p>
             </section>
 
-            {TOONATION && (
-              <section className="card support">
-                <div className="title">
-                  💜 응원하기
-                </div>
+            <section className="card support">
+              <div>
+                <b>💛 투네이션 후원</b>
 
-                <button
-                  className="primary"
-                  onClick={() => go(TOONATION)}
-                >
-                  투네이션으로 응원하기
-                </button>
-              </section>
-            )}
+                <small>
+                  현주님에게 응원을 보내주세요
+                </small>
+              </div>
+
+              <button onClick={() => go(TOONATION)}>
+                후원하기 ↗
+              </button>
+            </section>
+
+            <section className="card news">
+              <div className="title">
+                🔔 최근 소식
+              </div>
+
+              {data.live && (
+                <Item
+                  icon="🔴"
+                  title="라이브 시작"
+                  text={data.live.title}
+                  time="현재"
+                />
+              )}
+
+              {data.videos.slice(0, 3).map((v) => (
+                <Item
+                  key={v.id}
+                  icon="▶️"
+                  title="새 영상"
+                  text={v.title}
+                  time={fmt(v.publishedAt)}
+                />
+              ))}
+
+              {!data.live &&
+                data.videos.length === 0 &&
+                !data.loading && (
+                  <p className="muted">
+                    최근 소식이 없습니다.
+                  </p>
+                )}
+            </section>
           </>
         )}
 
@@ -192,24 +239,29 @@ export default function Hub() {
           <>
             <Back setPage={setPage} />
 
-            <h2>🎥 최신 영상</h2>
+            <h2>🎥 영상</h2>
 
-            <section className="card">
-              {data.loading ? (
+            {data.loading ? (
+              <section className="card">
                 <div className="skeleton" />
-              ) : data.videos.length > 0 ? (
-                data.videos.map((v) => (
+              </section>
+            ) : data.videos.length > 0 ? (
+              data.videos.map((v) => (
+                <section className="card" key={v.id}>
                   <Video
-                    key={v.id}
                     v={v}
                     go={go}
                     fmt={fmt}
                   />
-                ))
-              ) : (
-                <p>표시할 영상이 없습니다.</p>
-              )}
-            </section>
+                </section>
+              ))
+            ) : (
+              <section className="card">
+                <p className="muted">
+                  표시할 영상이 없습니다.
+                </p>
+              </section>
+            )}
           </>
         )}
 
@@ -220,143 +272,148 @@ export default function Hub() {
             <h2>🔔 알림 설정</h2>
 
             <section className="card">
-              <Setting t="🔴 라이브 시작" />
-              <Setting t="🎥 새 영상" />
-            </section>
+              <Setting
+                t="🔴 라이브 시작"
+                storageKey="live"
+              />
 
-            <section className="card">
-              <p>
-                알림을 켜두면 새로운 라이브와 영상이
-                등록되었을 때 휴대폰으로 알려드립니다.
+              <Setting
+                t="🎥 새 영상"
+                storageKey="video"
+              />
+
+              <Setting
+                t="📝 새 게시물"
+                storageKey="post"
+              />
+
+              <p className="muted">
+                알림을 켜면 이 기기에서 현주님의 새로운 소식을
+                받을 수 있도록 준비합니다.
               </p>
             </section>
           </>
         )}
       </main>
+
+      <nav>
+        <button
+          className={page === "home" ? "active" : ""}
+          onClick={() => setPage("home")}
+        >
+          ⌂
+          <small>홈</small>
+        </button>
+
+        <button
+          className={page === "videos" ? "active" : ""}
+          onClick={() => setPage("videos")}
+        >
+          ▶
+          <small>영상</small>
+        </button>
+
+        <button
+          onClick={() =>
+            go(CHANNEL + "/community")
+          }
+        >
+          ▢
+          <small>게시물</small>
+        </button>
+
+        <button onClick={() => go(TOONATION)}>
+          ♡
+          <small>후원</small>
+        </button>
+      </nav>
     </div>
   );
 }
 
 function Video({ v, go, fmt }) {
   return (
-    <article className="video">
-      {v.thumbnail && (
-        <img
-          src={v.thumbnail}
-          alt={v.title || "YouTube 영상"}
-        />
-      )}
-
-      <div className="videoInfo">
-        <b>{v.title}</b>
-
-        {v.publishedAt && (
-          <small>{fmt(v.publishedAt)}</small>
-        )}
-
-        <button onClick={() => go(v.url)}>
-          영상 보기 →
-        </button>
-      </div>
-    </article>
-  );
-}
-
-function Back({ setPage }) {
-  return (
-    <button
-      className="back"
-      onClick={() => setPage("home")}
+    <div
+      className="video"
+      onClick={() => go(v.url)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          go(v.url);
+        }
+      }}
     >
-      ← 돌아가기
-    </button>
+      <img
+        src={v.thumbnail}
+        alt={v.title}
+      />
+
+      <div>
+        <h3>{v.title}</h3>
+
+        <span>
+          {fmt(v.publishedAt)} · 조회수{" "}
+          {v.views ?? "-"}
+        </span>
+      </div>
+    </div>
   );
 }
 
-function Setting({ t }) {
+function Item({ icon, title, text, time }) {
+  return (
+    <div className="item">
+      <i>{icon}</i>
+
+      <div>
+        <b>{title}</b>
+
+        <small>{text}</small>
+      </div>
+
+      <em>{time}</em>
+    </div>
+  );
+}
+
+function Setting({ t, storageKey }) {
   const [on, setOn] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
-    const checkSubscription = async () => {
-      try {
-        if (!("serviceWorker" in navigator)) {
-          return;
-        }
-
-        if (!("PushManager" in window)) {
-          return;
-        }
-
-        if (Notification.permission !== "granted") {
-          if (mounted) {
-            setOn(false);
-          }
-
-          return;
-        }
-
-        const registration =
-          await navigator.serviceWorker.ready;
-
-        const subscription =
-          await registration.pushManager.getSubscription();
-
-        if (mounted) {
-          setOn(!!subscription);
-        }
-      } catch (error) {
-        console.error(
-          "Push subscription 확인 실패:",
-          error
+    try {
+      const saved =
+        localStorage.getItem(
+          "hyeonju-notification-" + storageKey
         );
 
-        if (mounted) {
-          setOn(false);
-        }
+      if (saved === "true") {
+        setOn(true);
       }
-    };
+    } catch (e) {
+      console.error(e);
+    }
+  }, [storageKey]);
 
-    checkSubscription();
+  const saveState = (value) => {
+    setOn(value);
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    try {
+      localStorage.setItem(
+        "hyeonju-notification-" + storageKey,
+        String(value)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const toggle = async () => {
     if (loading) return;
 
     if (on) {
-      try {
-        setLoading(true);
-
-        const registration =
-          await navigator.serviceWorker.ready;
-
-        const subscription =
-          await registration.pushManager.getSubscription();
-
-        if (subscription) {
-          await subscription.unsubscribe();
-        }
-
-        setOn(false);
-
-        alert("🔕 알림이 꺼졌습니다.");
-      } catch (error) {
-        console.error(error);
-
-        alert(
-          error.message ||
-            "알림을 끄는 중 오류가 발생했습니다."
-        );
-      } finally {
-        setLoading(false);
-      }
-
+      saveState(false);
       return;
     }
 
@@ -375,6 +432,12 @@ function Setting({ t }) {
         );
       }
 
+      if (!("Notification" in window)) {
+        throw new Error(
+          "이 브라우저에서는 알림 기능을 지원하지 않습니다."
+        );
+      }
+
       let permission = Notification.permission;
 
       if (permission !== "granted") {
@@ -384,26 +447,26 @@ function Setting({ t }) {
 
       if (permission !== "granted") {
         throw new Error(
-          "알림 권한을 허용하지 않았습니다."
+          "알림 권한이 허용되지 않았습니다."
         );
       }
 
       const registration =
         await navigator.serviceWorker.ready;
 
+      const publicKey =
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+      if (!publicKey) {
+        throw new Error(
+          "VAPID Public Key가 설정되지 않았습니다."
+        );
+      }
+
       let subscription =
         await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        const publicKey =
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-        if (!publicKey) {
-          throw new Error(
-            "VAPID Public Key가 설정되지 않았습니다."
-          );
-        }
-
         subscription =
           await registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -420,7 +483,13 @@ function Setting({ t }) {
         body: JSON.stringify(subscription),
       });
 
-      const result = await response.json();
+      let result = {};
+
+      try {
+        result = await response.json();
+      } catch {
+        result = {};
+      }
 
       if (!response.ok || !result.ok) {
         throw new Error(
@@ -429,14 +498,16 @@ function Setting({ t }) {
         );
       }
 
-      setOn(true);
+      saveState(true);
 
-      alert("🔔 알림 설정이 완료되었습니다!");
+      alert(
+        "🔔 알림 설정이 완료되었습니다!"
+      );
     } catch (error) {
       console.error(error);
 
       alert(
-        error.message ||
+        error?.message ||
           "알림 설정 중 오류가 발생했습니다."
       );
     } finally {
@@ -452,6 +523,12 @@ function Setting({ t }) {
         className={"switch " + (on ? "on" : "")}
         onClick={toggle}
         disabled={loading}
+        aria-label={
+          on
+            ? `${t} 알림 끄기`
+            : `${t} 알림 켜기`
+        }
+        aria-pressed={on}
       >
         <span />
       </button>
@@ -460,13 +537,15 @@ function Setting({ t }) {
 }
 
 function publicKeyToUint8Array(base64String) {
-  const padding = "=".repeat(
-    (4 - (base64String.length % 4)) % 4
-  );
+  const padding =
+    "=".repeat(
+      (4 - (base64String.length % 4)) % 4
+    );
 
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
+  const base64 =
+    (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
 
   const rawData = window.atob(base64);
 
@@ -474,5 +553,16 @@ function publicKeyToUint8Array(base64String) {
     [...rawData].map((char) =>
       char.charCodeAt(0)
     )
+  );
+}
+
+function Back({ setPage }) {
+  return (
+    <button
+      className="back"
+      onClick={() => setPage("home")}
+    >
+      ← 홈으로
+    </button>
   );
 }
