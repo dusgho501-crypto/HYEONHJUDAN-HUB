@@ -83,7 +83,7 @@ export default function Hub() {
 
         <div className="avatar">💜</div>
 
-        <h1>현주님 HUB</h1>
+        <h1>현주님의 작은 우주</h1>
 
         <p>현주님의 모든 소식을 한 곳에서 💜</p>
       </header>
@@ -224,7 +224,51 @@ export default function Hub() {
               </button>
             </section>
 
-            <section className="card news">
+                    <section className="card hyeonju-sns-card">
+          <div className="title">
+            💜 현주님 SNS
+          </div>
+
+          <p className="muted">
+            현주님과 더 가까이 소통해요 💜
+          </p>
+
+          <div className="sns-links">
+            <button
+              onClick={() =>
+                go("https://open.kakao.com/o/sHsEr66h")
+              }
+              type="button"
+            >
+              💬
+              <span>오픈채팅</span>
+              <small>함께 이야기해요</small>
+            </button>
+
+            <button
+              onClick={() =>
+                go("https://www.instagram.com/030901_j/")
+              }
+              type="button"
+            >
+              📷
+              <span>Instagram</span>
+              <small>일상을 만나보세요</small>
+            </button>
+
+            <button
+              onClick={() =>
+                go("https://www.threads.com/@030901_j")
+              }
+              type="button"
+            >
+              🧵
+              <span>Threads</span>
+              <small>소소한 이야기를 만나보세요</small>
+            </button>
+          </div>
+        </section>
+<section className="card news">
               <div className="title">
                 🔔 최근 소식
               </div>
@@ -604,3 +648,6 @@ function Back({ setPage }) {
     </button>
   );
 }
+
+
+
