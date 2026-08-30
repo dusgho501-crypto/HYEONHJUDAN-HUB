@@ -4,14 +4,16 @@ import { useEffect, useState } from "react";
 import "./style.css";
 
 const CHANNEL =
+  process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL ||
   "https://www.youtube.com/channel/UCltJz_jkCxQxd2mTqrn3Lfg";
-
-const COMMUNITY =
-  "https://www.youtube.com/channel/UCltJz_jkCxQxd2mTqrn3Lfg/community";
 
 const TOONATION =
   process.env.NEXT_PUBLIC_TOONATION_URL ||
   "https://toon.at/donate/hyunjujuju030";
+
+const COMMUNITY =
+  process.env.NEXT_PUBLIC_YOUTUBE_POSTS_URL ||
+  `${CHANNEL.replace(/\/$/, "")}/posts`;
 
 export default function Hub() {
   const [data, setData] = useState({
@@ -25,31 +27,19 @@ export default function Hub() {
 
   useEffect(() => {
     fetch("/api/youtube")
-      .then((response) => {
-        if (!response.ok) {
+      .then((r) => {
+        if (!r.ok) {
           throw new Error("YouTube API 응답 오류");
         }
-
-        return response.json();
+        return r.json();
       })
-      .then((result) => {
-        setData({
-          loading: false,
-          videos: Array.isArray(result.videos)
-            ? result.videos
-            : [],
-          live: result.live || null,
-          error: result.error || null,
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-
+      .then(setData)
+      .catch((e) => {
         setData({
           loading: false,
           videos: [],
           live: null,
-          error: error?.message || "YouTube 연결 오류",
+          error: e.message,
         });
       });
   }, []);
@@ -58,36 +48,25 @@ export default function Hub() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .catch((error) => {
-          console.error("Service Worker:", error);
-        });
+        .catch(console.error);
     }
   }, []);
 
   const go = (url) => {
     if (!url) return;
 
-    try {
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      console.error(error);
-      window.location.href = url;
-    }
+    window.location.assign(url);
   };
 
-  const fmt = (date) => {
-    if (!date) return "";
+  const fmt = (d) => {
+    if (!d) return "";
 
-    try {
-      return new Date(date).toLocaleString("ko-KR", {
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "";
-    }
+    return new Date(d).toLocaleString("ko-KR", {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
@@ -97,6 +76,7 @@ export default function Hub() {
           className="bell"
           onClick={() => setPage("settings")}
           aria-label="알림 설정"
+          type="button"
         >
           🔔
         </button>
@@ -117,7 +97,8 @@ export default function Hub() {
               }
             >
               <div className="liveTop">
-                <span className="dot" />
+                <span className="dot"></span>
+
                 LIVE
 
                 <span className="badge">
@@ -143,6 +124,7 @@ export default function Hub() {
                 onClick={() =>
                   go(data.live?.url || CHANNEL)
                 }
+                type="button"
               >
                 {data.live
                   ? "🔴 라이브 보러가기 →"
@@ -157,8 +139,8 @@ export default function Hub() {
               </div>
 
               <button
-                type="button"
                 onClick={() => go(CHANNEL)}
+                type="button"
               >
                 채널 열기 ↗
               </button>
@@ -169,8 +151,8 @@ export default function Hub() {
                 🎥 최신 영상
 
                 <button
-                  type="button"
                   onClick={() => setPage("videos")}
+                  type="button"
                 >
                   더보기 ›
                 </button>
@@ -181,10 +163,10 @@ export default function Hub() {
               ) : data.videos.length > 0 ? (
                 data.videos
                   .slice(0, 3)
-                  .map((video) => (
+                  .map((v) => (
                     <Video
-                      key={video.id}
-                      v={video}
+                      key={v.id}
+                      v={v}
                       go={go}
                       fmt={fmt}
                     />
@@ -208,20 +190,20 @@ export default function Hub() {
                 📝 게시물
 
                 <button
-                  type="button"
                   onClick={() => go(COMMUNITY)}
+                  type="button"
                 >
-                  YouTube에서 보기 ›
+                  게시물 보기 ›
                 </button>
               </div>
 
               <p>
-                <b>현주님의 YouTube 커뮤니티</b>
+                <b>현주님의 YouTube 게시물</b>
               </p>
 
               <p className="muted">
-                버튼을 누르면 현주님의 실제 YouTube
-                커뮤니티 페이지로 이동합니다.
+                현주님의 최신 게시물과 소식을
+                YouTube에서 확인할 수 있습니다.
               </p>
             </section>
 
@@ -235,8 +217,8 @@ export default function Hub() {
               </div>
 
               <button
-                type="button"
                 onClick={() => go(TOONATION)}
+                type="button"
               >
                 후원하기 ↗
               </button>
@@ -256,17 +238,15 @@ export default function Hub() {
                 />
               )}
 
-              {data.videos
-                .slice(0, 3)
-                .map((video) => (
-                  <Item
-                    key={video.id}
-                    icon="▶️"
-                    title="새 영상"
-                    text={video.title}
-                    time={fmt(video.publishedAt)}
-                  />
-                ))}
+              {data.videos.slice(0, 3).map((v) => (
+                <Item
+                  key={v.id}
+                  icon="▶️"
+                  title="새 영상"
+                  text={v.title}
+                  time={fmt(v.publishedAt)}
+                />
+              ))}
 
               {!data.live &&
                 data.videos.length === 0 &&
@@ -290,13 +270,13 @@ export default function Hub() {
                 <div className="skeleton" />
               </section>
             ) : data.videos.length > 0 ? (
-              data.videos.map((video) => (
+              data.videos.map((v) => (
                 <section
                   className="card"
-                  key={video.id}
+                  key={v.id}
                 >
                   <Video
-                    v={video}
+                    v={v}
                     go={go}
                     fmt={fmt}
                   />
@@ -335,8 +315,8 @@ export default function Hub() {
               />
 
               <p className="muted">
-                알림을 켜면 이 기기에서 현주님의 새로운
-                소식을 받을 수 있도록 준비합니다.
+                알림을 켜면 이 기기에서 현주님의
+                새로운 소식을 받을 수 있도록 준비합니다.
               </p>
             </section>
           </>
@@ -345,34 +325,38 @@ export default function Hub() {
 
       <nav>
         <button
-          type="button"
-          className={page === "home" ? "active" : ""}
+          className={
+            page === "home" ? "active" : ""
+          }
           onClick={() => setPage("home")}
+          type="button"
         >
           ⌂
           <small>홈</small>
         </button>
 
         <button
-          type="button"
-          className={page === "videos" ? "active" : ""}
+          className={
+            page === "videos" ? "active" : ""
+          }
           onClick={() => setPage("videos")}
+          type="button"
         >
           ▶
           <small>영상</small>
         </button>
 
         <button
-          type="button"
           onClick={() => go(COMMUNITY)}
+          type="button"
         >
           ▢
           <small>게시물</small>
         </button>
 
         <button
-          type="button"
           onClick={() => go(TOONATION)}
+          type="button"
         >
           ♡
           <small>후원</small>
@@ -383,51 +367,37 @@ export default function Hub() {
 }
 
 function Video({ v, go, fmt }) {
-  const openVideo = () => {
-    if (v?.url) {
-      go(v.url);
-    }
-  };
-
   return (
     <div
       className="video"
-      onClick={openVideo}
+      onClick={() => go(v.url)}
       role="button"
       tabIndex={0}
-      onKeyDown={(event) => {
-        if (
-          event.key === "Enter" ||
-          event.key === " "
-        ) {
-          event.preventDefault();
-          openVideo();
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          go(v.url);
         }
       }}
     >
       <img
-        src={v?.thumbnail || ""}
-        alt={v?.title || "YouTube 영상"}
+        src={v.thumbnail}
+        alt={v.title}
       />
 
       <div>
-        <h3>{v?.title || "제목 없음"}</h3>
+        <h3>{v.title}</h3>
 
         <span>
-          {fmt(v?.publishedAt)} · 조회수{" "}
-          {v?.views ?? "-"}
+          {fmt(v.publishedAt)} · 조회수{" "}
+          {v.views ?? "-"}
         </span>
       </div>
     </div>
   );
 }
 
-function Item({
-  icon,
-  title,
-  text,
-  time,
-}) {
+function Item({ icon, title, text, time }) {
   return (
     <div className="item">
       <i>{icon}</i>
@@ -452,9 +422,11 @@ function Setting({ t, storageKey }) {
         "hyeonju-notification-" + storageKey
       );
 
-      setOn(saved === "true");
-    } catch (error) {
-      console.error(error);
+      if (saved === "true") {
+        setOn(true);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }, [storageKey]);
 
@@ -466,8 +438,8 @@ function Setting({ t, storageKey }) {
         "hyeonju-notification-" + storageKey,
         String(value)
       );
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -582,7 +554,6 @@ function Setting({ t, storageKey }) {
       <b>{t}</b>
 
       <button
-        type="button"
         className={
           "switch " + (on ? "on" : "")
         }
@@ -594,6 +565,7 @@ function Setting({ t, storageKey }) {
             : `${t} 알림 켜기`
         }
         aria-pressed={on}
+        type="button"
       >
         <span />
       </button>
@@ -607,11 +579,10 @@ function publicKeyToUint8Array(base64String) {
       (4 - (base64String.length % 4)) % 4
     );
 
-  const base64 = (
-    base64String + padding
-  )
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
+  const base64 =
+    (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
 
   const rawData = window.atob(base64);
 
@@ -625,9 +596,9 @@ function publicKeyToUint8Array(base64String) {
 function Back({ setPage }) {
   return (
     <button
-      type="button"
       className="back"
       onClick={() => setPage("home")}
+      type="button"
     >
       ← 홈으로
     </button>
