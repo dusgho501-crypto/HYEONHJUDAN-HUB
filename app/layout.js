@@ -1,7 +1,7 @@
 ﻿export const metadata = {
-  title: "현주님의 작은 우주",
+  title: "현주의스토리.zip",
   description: "현주님의 YouTube 콘텐츠를 한곳에서 만나보세요.",
-  applicationName: "현주님의 작은 우주",
+  applicationName: "현주의스토리.zip",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -26,7 +26,7 @@
   },
   appleWebApp: {
     capable: true,
-    title: "현주님의 작은 우주",
+    title: "현주의스토리.zip",
     statusBarStyle: "default",
   },
 };

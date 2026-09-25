@@ -41,7 +41,7 @@ export default function Hub() {
         <div className="header-inner">
           <button className="brand" onClick={() => openPage("home")} type="button">
             <span className="brand-mark">💜</span>
-            <span><strong>현주님의 작은 우주</strong><small>HYEONJU UNIVERSE</small></span>
+            <span><strong>현주의스토리.zip</strong><small>HYEONJU UNIVERSE</small></span>
           </button>
 
           <nav className="top-nav">
@@ -60,7 +60,7 @@ export default function Hub() {
             <div className="hero-copy">
               <span className="eyebrow">HYEONJU'S LITTLE UNIVERSE</span>
               <h1>현주님의<br/><em>작은 우주</em></h1>
-              <p>현주님의 방송과 소식을 한곳에서 만나보세요.</p>
+              <p>현주의 모든 순간을 한곳에 📦 만나보세요.</p>
               <div className="hero-actions">
                 <button className="hero-primary" onClick={() => go(data.live?.url || CHANNEL)} type="button">
                   {data.live ? "🔴 지금 방송 보기" : "▶ YouTube 채널 보기"}
@@ -203,7 +203,7 @@ export default function Hub() {
       )}
 
       <footer className="footer">
-        <div><strong>현주님의 작은 우주</strong><span>HYEONJU'S LITTLE UNIVERSE</span></div>
+        <div><strong>현주의스토리.zip</strong><span>HYEONJU'S LITTLE UNIVERSE</span></div>
         <button onClick={() => openPage("home")} type="button">맨 위로 ↑</button>
       </footer>
     </div>
