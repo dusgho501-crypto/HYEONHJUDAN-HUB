@@ -1263,3 +1263,97 @@ button{
 
 
 .setting-row > .switch{display:flex!important;align-items:center;justify-content:flex-start;width:48px!important;min-width:48px!important;height:28px!important;padding:3px!important;border:1px solid #d9d4dc!important;border-radius:999px!important;background:#ddd9df!important}.setting-row > .switch.on{background:#8b67e8!important;border-color:#8b67e8!important}.setting-row > .switch span{display:block!important;width:22px!important;height:22px!important;flex:0 0 22px!important;border-radius:50%!important;background:#fff!important;transform:translateX(0)!important}.setting-row > .switch.on span{transform:translateX(20px)!important}
+
+/* COMMUNITY POST DESIGN V2 */
+
+.post-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  overflow-x: visible;
+}
+
+.post-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 285px;
+  padding: 14px;
+  border-radius: 17px;
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(80, 61, 45, .08);
+}
+
+.post-thumb {
+  flex: 0 0 auto;
+  margin: -14px -14px 13px;
+}
+
+.post-thumb img {
+  width: 100%;
+  height: 155px;
+  object-fit: cover;
+}
+
+.post-card-top {
+  flex: 0 0 auto;
+}
+
+.post-card-top strong {
+  font-size: 11px;
+}
+
+.post-card-top small {
+  font-size: 8.5px;
+}
+
+.post-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-top: 11px;
+}
+
+.post-card h3 {
+  margin: 7px 0 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  -webkit-line-clamp: 5;
+}
+
+.post-card-body > small {
+  margin-top: auto;
+  padding-top: 5px;
+  font-size: 9px;
+}
+
+@media (max-width: 900px) {
+  .post-strip {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .post-strip {
+    grid-template-columns: repeat(3, 285px);
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .post-card {
+    min-height: 300px;
+    scroll-snap-align: start;
+  }
+
+  .post-thumb img {
+    height: 165px;
+  }
+}

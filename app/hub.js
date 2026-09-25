@@ -13,6 +13,8 @@ const THREADS = "https://www.threads.com/@030901_j";
 export default function Hub() {
   const [data, setData] = useState({ loading:true, videos:[], live:null, recentLives:[], error:null });
   const [page, setPage] = useState("home");
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [communityLoading, setCommunityLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/youtube")
@@ -26,6 +28,27 @@ export default function Hub() {
       }))
       .catch(e => setData({ loading:false,videos:[],live:null,recentLives:[],error:e.message }));
   }, []);
+  useEffect(() => {
+    fetch("/api/community")
+      .then((r) => {
+        if (!r.ok) throw new Error("Community API 응답 오류");
+        return r.json();
+      })
+      .then((json) => {
+        if (!json.ok) {
+          throw new Error(json.error || "게시물을 불러오지 못했습니다.");
+        }
+        setCommunityPosts(json.posts || []);
+      })
+      .catch((e) => {
+        console.error("Community posts:", e);
+      })
+      .finally(() => {
+        setCommunityLoading(false);
+      });
+  }, []);
+
+
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(console.error);
@@ -115,43 +138,72 @@ export default function Hub() {
           </section>
 
           {!data.loading && !data.videos.length && <div className="empty-card">표시할 영상이 없습니다.</div>}
-
-                    <SectionTitle
+          <SectionTitle
             label="POST"
             title="현주님의 소식"
             action="YouTube에서 전체 보기 →"
             onClick={() => go(COMMUNITY)}
           />
 
-          <section className="post-strip single-post">
-            <button
-              className="post-card featured"
-              onClick={() => go(COMMUNITY)}
-              type="button"
-            >
-              <div className="post-card-top">
-                <span className="post-avatar">💜</span>
-                <span>
-                  <strong>현주님 YouTube</strong>
-                  <small>Community</small>
-                </span>
+          <section className="post-strip">
+            {communityLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div className="post-card" key={i}>
+                  <div className="post-card-top">
+                    <span className="post-avatar">💜</span>
+                    <span>
+                      <strong>현주</strong>
+                      <small>Community</small>
+                    </span>
+                  </div>
+
+                  <div className="post-card-body">
+                    <span className="post-tag">LOADING</span>
+                    <h3>현주님의 최신 소식을 불러오는 중이에요.</h3>
+                  </div>
+                </div>
+              ))
+            ) : communityPosts.length > 0 ? (
+              communityPosts.map((post) => (
+                <button
+                  className="post-card"
+                  key={post.id}
+                  onClick={() => go(post.url)}
+                  type="button"
+                >
+                  {post.images?.[0] && (
+                    <div className="post-thumb">
+                      <img src={post.images[0]} alt="" />
+                    </div>
+                  )}
+
+                  <div className="post-card-top">
+                    <span className="post-avatar">💜</span>
+                    <span>
+                      <strong>현주</strong>
+                      <small>
+                        Community ·{" "}
+                        {post.publishedLabel || fmt(post.publishedAt)}
+                      </small>
+                    </span>
+                  </div>
+
+                  <div className="post-card-body">
+                    <span className="post-tag">YOUTUBE POST</span>
+                    <h3>{post.text}</h3>
+                    <small>
+                      ❤️ {post.likes ?? 0} · 게시물 보기 →
+                    </small>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="empty-card">
+                최근 게시물을 불러오지 못했어요.
               </div>
-
-              <div className="post-card-body">
-                <span className="post-tag">LATEST POST</span>
-                <h3>
-                  현주님의 최신 소식은 YouTube 게시물에서 확인해보세요.
-                </h3>
-                <p>
-                  방송 이야기와 새로운 소식을 만나볼 수 있어요.
-                </p>
-              </div>
-
-              <span className="post-arrow">→</span>
-            </button>
-
-            
+            )}
           </section>
+
 <SectionTitle label="LIVE HISTORY" title="최근 방송"/>
           <section className="history-card">
             {data.recentLives.length
