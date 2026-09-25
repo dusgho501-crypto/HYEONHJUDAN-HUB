@@ -11,7 +11,6 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT;
 
 const DATABASE_URL = process.env.DATABASE_URL;
-
 const CRON_SECRET = process.env.CRON_SECRET;
 
 const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
@@ -35,20 +34,20 @@ async function youtube(path, params) {
 
   Object.entries({
     ...params,
-    key: YOUTUBE_API_KEY
+    key: YOUTUBE_API_KEY,
   }).forEach(([key, value]) => {
     url.searchParams.set(key, value);
   });
 
   const response = await fetch(url, {
-    cache: "no-store"
+    cache: "no-store",
   });
 
   const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      data?.error?.message || "YouTube API 오류"
+      data?.error?.message || "YouTube API 요청에 실패했습니다."
     );
   }
 
@@ -57,9 +56,7 @@ async function youtube(path, params) {
 
 async function initDatabase() {
   if (!sql) {
-    throw new Error(
-      "DATABASE_URL이 설정되지 않았습니다."
-    );
+    throw new Error("DATABASE_URL이 설정되지 않았습니다.");
   }
 
   await sql`
@@ -98,7 +95,7 @@ async function sendPush(title, body, url) {
         JSON.stringify({
           title,
           body,
-          url
+          url,
         })
       );
 
@@ -126,8 +123,18 @@ async function sendPush(title, body, url) {
   return {
     subscribers: rows.length,
     sent,
-    failed
+    failed,
   };
+}
+
+async function hasAnyNotifications() {
+  const rows = await sql`
+    SELECT id
+    FROM youtube_notifications
+    LIMIT 1
+  `;
+
+  return rows.length > 0;
 }
 
 async function alreadyNotified(youtubeId) {
@@ -165,16 +172,8 @@ async function saveNotification(
 export async function GET(request) {
   try {
     /*
-      Vercel Cron 보안
-
-      CRON_SECRET을 설정한 경우:
-      Authorization: Bearer CRON_SECRET
-      헤더가 있어야 실행됩니다.
-
-      로컬 테스트에서는 CRON_SECRET이 없으면
-      별도 인증 없이 실행됩니다.
-    */
-
+     * cron-job.org 또는 Vercel Cron 인증
+     */
     if (CRON_SECRET) {
       const authorization =
         request.headers.get("authorization");
@@ -186,7 +185,7 @@ export async function GET(request) {
         return NextResponse.json(
           {
             ok: false,
-            error: "Unauthorized"
+            error: "Unauthorized",
           },
           { status: 401 }
         );
@@ -218,117 +217,190 @@ export async function GET(request) {
     await initDatabase();
 
     /*
-      최근 영상 확인
-    */
+     * 중요:
+     * search.list를 사용하지 않습니다.
+     *
+     * 채널의 업로드 플레이리스트에서
+     * 최근 영상 10개를 가져옵니다.
+     *
+     * Search Queries quota를 사용하지 않습니다.
+     */
+    const uploadsPlaylistId =
+      CHANNEL_ID.startsWith("UC")
+        ? "UU" + CHANNEL_ID.slice(2)
+        : null;
 
-    const videos = await youtube(
-      "search",
+    if (!uploadsPlaylistId) {
+      throw new Error(
+        "올바른 YouTube 채널 ID가 아닙니다."
+      );
+    }
+
+    const playlistData = await youtube(
+      "playlistItems",
       {
         part: "snippet",
-        channelId: CHANNEL_ID,
-        order: "date",
-        type: "video",
-        maxResults: 5
+        playlistId: uploadsPlaylistId,
+        maxResults: 10,
       }
     );
 
-    const newVideos = [];
+    const playlistItems =
+      Array.isArray(playlistData.items)
+        ? playlistData.items
+        : [];
 
-    for (const item of videos.items || []) {
-      const videoId = item.id?.videoId;
+    const videoIds = playlistItems
+      .map(
+        (item) =>
+          item?.snippet?.resourceId?.videoId
+      )
+      .filter(Boolean);
 
-      if (!videoId) continue;
-
-      const title =
-        item.snippet?.title ||
-        "새 영상이 올라왔어요!";
-
-      const exists =
-        await alreadyNotified(videoId);
-
-      if (!exists) {
-        await saveNotification(
-          videoId,
-          "video",
-          title
-        );
-
-        newVideos.push({
-          id: videoId,
-          title
-        });
-      }
+    if (videoIds.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        checkedAt: new Date().toISOString(),
+        newVideos: [],
+        live: null,
+        pushResults: [],
+      });
     }
 
     /*
-      현재 LIVE 확인
-    */
-
-    const liveSearch = await youtube(
-      "search",
+     * 영상 상세정보 + LIVE 상태
+     *
+     * videos.list 1회로 일괄 조회합니다.
+     */
+    const videoData = await youtube(
+      "videos",
       {
-        part: "snippet",
-        channelId: CHANNEL_ID,
-        eventType: "live",
-        type: "video",
-        maxResults: 1
+        part: "snippet,liveStreamingDetails",
+        id: videoIds.join(","),
       }
     );
 
+    const apiVideos =
+      Array.isArray(videoData.items)
+        ? videoData.items
+        : [];
+
+    const videosById = new Map(
+      apiVideos.map((video) => [
+        video.id,
+        video,
+      ])
+    );
+
+    /*
+ * 새 영상 확인
+ *
+ * 최초 실행 시 기존 영상은 기록만 하고
+ * 알림을 발송하지 않습니다.
+ */
+const isInitializing = !(await hasAnyNotifications());
+const newVideos = [];
+
+for (const item of playlistItems) {
+  const videoId =
+    item?.snippet?.resourceId?.videoId;
+
+  if (!videoId) continue;
+
+  const video = videosById.get(videoId);
+
+  const title =
+    video?.snippet?.title ||
+    item?.snippet?.title ||
+    "새 영상";
+
+  const details =
+    video?.liveStreamingDetails;
+
+  const isLive =
+    details?.actualStartTime &&
+    !details?.actualEndTime;
+
+  // LIVE 영상은 아래 LIVE 전용 로직에서 처리합니다.
+  if (isLive) continue;
+
+  const exists =
+    await alreadyNotified(videoId);
+
+  if (!exists) {
+    await saveNotification(
+      videoId,
+      "video",
+      title
+    );
+
+    // 최초 실행에서는 기존 영상 알림을 보내지 않습니다.
+    if (!isInitializing) {
+      newVideos.push({
+        id: videoId,
+        title,
+      });
+    }
+  }
+}
+/*
+     * 현재 LIVE 확인
+     *
+     * search.list를 사용하지 않습니다.
+     */
     let live = null;
 
-    if (liveSearch.items?.[0]) {
-      const item =
-        liveSearch.items[0];
+    for (const video of apiVideos) {
+      const details =
+        video?.liveStreamingDetails;
 
-      const videoId =
-        item.id?.videoId;
-
-      const title =
-        item.snippet?.title ||
-        "현주님이 지금 방송 중이에요!";
-
-      if (videoId) {
+      if (
+        details?.actualStartTime &&
+        !details?.actualEndTime
+      ) {
         live = {
-          id: videoId,
-          title
+          id: video.id,
+          title:
+            video?.snippet?.title ||
+            "현주님 LIVE 방송 중",
         };
 
         const exists =
-          await alreadyNotified(videoId);
+          await alreadyNotified(video.id);
 
         if (!exists) {
           await saveNotification(
-            videoId,
+            video.id,
             "live",
-            title
+            live.title
           );
 
           await sendPush(
             "🔴 현주님 LIVE 시작!",
-            title,
-            `https://www.youtube.com/watch?v=${videoId}`
+            live.title,
+            `https://www.youtube.com/watch?v=${video.id}`
           );
         }
+
+        break;
       }
     }
 
     /*
-      새 영상 알림
-    */
-
+     * 새 영상 알림
+     */
     const pushResults = [];
 
     for (const video of newVideos) {
       const result = await sendPush(
-        "🎥 현주님 새 영상!",
+        "📺 현주님 새 영상!",
         video.title,
         `https://www.youtube.com/watch?v=${video.id}`
       );
 
       pushResults.push({
         video: video.id,
-        ...result
+        ...result,
       });
     }
 
@@ -337,16 +409,20 @@ export async function GET(request) {
       checkedAt: new Date().toISOString(),
       newVideos,
       live,
-      pushResults
+      pushResults,
     });
-
   } catch (error) {
-    console.error(error);
+    console.error(
+      "YouTube check error:",
+      error
+    );
 
     return NextResponse.json(
       {
         ok: false,
-        error: error.message
+        error:
+          error?.message ||
+          "YouTube 확인 중 오류가 발생했습니다.",
       },
       { status: 500 }
     );

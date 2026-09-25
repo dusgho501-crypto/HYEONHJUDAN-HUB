@@ -224,6 +224,12 @@ export async function GET() {
           title:
             video?.snippet?.title ||
             "현주님 라이브",
+          thumbnail:
+            video?.snippet?.thumbnails?.high?.url ||
+            video?.snippet?.thumbnails?.medium?.url ||
+            video?.snippet?.thumbnails?.default?.url ||
+            "",
+          startedAt: details.actualStartTime,
           url:
             `https://www.youtube.com/watch?v=${video.id}`,
         };
@@ -232,10 +238,54 @@ export async function GET() {
       }
     }
 
+    /*
+     * 최근 방송 기록
+     *
+     * actualStartTime과 actualEndTime이 모두 있는
+     * 종료된 라이브 방송만 모읍니다.
+     */
+    const recentLives = apiVideos
+      .filter((video) => {
+        const details =
+          video?.liveStreamingDetails;
+
+        return (
+          details?.actualStartTime &&
+          details?.actualEndTime
+        );
+      })
+      .map((video) => {
+        const details =
+          video?.liveStreamingDetails;
+
+        return {
+          id: video.id,
+          title:
+            video?.snippet?.title ||
+            "현주님 라이브",
+          thumbnail:
+            video?.snippet?.thumbnails?.high?.url ||
+            video?.snippet?.thumbnails?.medium?.url ||
+            video?.snippet?.thumbnails?.default?.url ||
+            "",
+          startedAt: details.actualStartTime,
+          endedAt: details.actualEndTime,
+          url:
+            `https://www.youtube.com/watch?v=${video.id}`,
+        };
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.startedAt).getTime() -
+          new Date(a.startedAt).getTime()
+      )
+      .slice(0, 3);
+
     return json({
       loading: false,
       videos,
       live,
+      recentLives,
       error: null,
     });
   } catch (error) {
@@ -267,4 +317,5 @@ export async function GET() {
     });
   }
 }
+
 
