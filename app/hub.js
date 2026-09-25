@@ -308,11 +308,11 @@ function HubContent() {
 
           <SectionTitle label="LINKS" title={t("section.links")}/>
           <section className="links-grid">
-            <LinkCard icon="▶" title="YouTube" text={t("links.youtube")} onClick={() => go(CHANNEL)}/>
-            <LinkCard icon="💛" title="Toonation" text={t("links.toonation")} onClick={() => go(TOONATION)}/>
-            <LinkCard icon="💬" title="오픈채팅" text={t("links.openChat")} onClick={() => go(OPEN_CHAT)}/>
-            <LinkCard icon="📷" title="Instagram" text={t("links.instagram")} onClick={() => go(INSTAGRAM)}/>
-            <LinkCard icon="🧵" title="Threads" text={t("links.threads")} onClick={() => go(THREADS)}/>
+            <LinkCard icon="▶" title={t("links.titleYoutube")} text={t("links.youtube")} onClick={() => go(CHANNEL)}/>
+            <LinkCard icon="💛" title={t("links.titleToonation")} text={t("links.toonation")} onClick={() => go(TOONATION)}/>
+            <LinkCard icon="💬" title={t("links.titleOpenChat")} text={t("links.openChat")} onClick={() => go(OPEN_CHAT)}/>
+            <LinkCard icon="📷" title={t("links.titleInstagram")} text={t("links.instagram")} onClick={() => go(INSTAGRAM)}/>
+            <LinkCard icon="🧵" title={t("links.titleThreads")} text={t("links.threads")} onClick={() => go(THREADS)}/>
           </section>
 
           <section className="notice-banner">
