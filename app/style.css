@@ -927,7 +927,7 @@ button{
 
   .brand small{display:none}
 
-  .top-nav button:not(.header-bell){
+  .top-nav button:not(.header-bell):not(.menu-toggle){
     display:none;
   }
 
@@ -1492,5 +1492,30 @@ button{
     top:70px;
     right:10px;
     width:calc(100vw - 20px);
+  }
+}
+
+/* MOBILE GLOBAL MENU FIX */
+@media (max-width: 560px) {
+  .site-header .top-nav {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .site-header .top-nav .menu-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0 !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+  }
+
+  .site-header .top-nav .menu-toggle span {
+    display: block !important;
+    font-size: 20px !important;
   }
 }
