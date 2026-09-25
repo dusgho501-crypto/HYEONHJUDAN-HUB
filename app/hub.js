@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { I18nProvider, LANGUAGE_OPTIONS, useI18n } from "./i18n";
 import "./style.css";
 
 const CHANNEL = process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || "https://www.youtube.com/channel/UCltJz_jkCxQxd2mTqrn3Lfg";
@@ -10,11 +11,12 @@ const OPEN_CHAT = "https://open.kakao.com/o/sHsEr66h";
 const INSTAGRAM = "https://www.instagram.com/030901_j/";
 const THREADS = "https://www.threads.com/@030901_j";
 
-export default function Hub() {
+function HubContent() {
   const [data, setData] = useState({ loading:true, videos:[], live:null, recentLives:[], error:null });
   const [page, setPage] = useState("home");
   const [communityPosts, setCommunityPosts] = useState([]);
   const [communityLoading, setCommunityLoading] = useState(true);
+  const { language, setLanguage, t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function Hub() {
 
   const go = url => { if (url) window.location.assign(url); };
   const openPage = p => { setPage(p); setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); };
-  const fmt = d => d ? new Date(d).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
+  const fmt = d => d ? new Date(d).toLocaleString(({ko:"ko-KR",en:"en-US",ja:"ja-JP",zh:"zh-CN",fr:"fr-FR",de:"de-DE"}[language] || "ko-KR"),{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
 
   return (
     <div className="site">
@@ -69,11 +71,25 @@ export default function Hub() {
           </button>
 
           <nav className="top-nav">
-            <button className={page==="home"?"active":""} onClick={() => openPage("home")} type="button">홈</button>
-            <button className={page==="videos"?"active":""} onClick={() => openPage("videos")} type="button">영상</button>
-            <button onClick={() => go(COMMUNITY)} type="button">Post</button>
-            <button onClick={() => go(TOONATION)} type="button">후원</button>
-            <button className="header-bell" onClick={() => openPage("settings")} type="button">🔔</button>
+            <button className={page==="home"?"active":""} onClick={() => openPage("home")} type="button">{t("nav.home")}</button>
+            <button className={page==="videos"?"active":""} onClick={() => openPage("videos")} type="button">{t("nav.videos")}</button>
+            <button onClick={() => go(COMMUNITY)} type="button">{t("nav.post")}</button>
+            <button onClick={() => go(TOONATION)} type="button">{t("nav.support")}</button>
+            
+            <div className="language-picker">
+              <span aria-hidden="true">🌐</span>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                aria-label={t("nav.notification")}
+              >
+                {LANGUAGE_OPTIONS.map(([code, label]) => (
+                  <option key={code} value={code}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+<button className="header-bell" onClick={() => openPage("settings")} type="button">🔔</button>
             <button
               className={"menu-toggle " + (menuOpen ? "active" : "")}
               onClick={() => setMenuOpen(v => !v)}
@@ -82,7 +98,7 @@ export default function Hub() {
               aria-expanded={menuOpen}
             >
               <span>☰</span>
-              <small>전체 메뉴</small>
+              <small>{t("menu.all")}</small>
             </button>
           </nav>
 
@@ -112,16 +128,16 @@ export default function Hub() {
 
                 <div className="menu-list">
                   <button onClick={() => openPage("home")} type="button">
-                    🏠 <span>홈</span>
+                    🏠 <span>{t("menu.home")}</span>
                   </button>
                   <button onClick={() => openPage("videos")} type="button">
-                    🎥 <span>최근 영상</span>
+                    🎥 <span>{t("menu.videos")}</span>
                   </button>
                   <button onClick={() => { go(COMMUNITY); setMenuOpen(false); }} type="button">
-                    📝 <span>현주님의 소식</span>
+                    📝 <span>{t("menu.news")}</span>
                   </button>
                   <button onClick={() => openPage("settings")} type="button">
-                    🔔 <span>방송 알림</span>
+                    🔔 <span>{t("menu.notification")}</span>
                   </button>
                 </div>
 
@@ -156,11 +172,11 @@ export default function Hub() {
           <section className="hero-section">
             <div className="hero-copy">
               <span className="eyebrow">HYEONJU'S LITTLE UNIVERSE</span>
-              <h1>현주의스토리.zip</h1>
-              <p>현주의 모든 순간을 한곳에 📦</p>
+              <h1>{t("brand.title")}</h1>
+              <p>{t("brand.tagline")}</p>
               <div className="hero-actions">
                 <button className="hero-primary" onClick={() => go(data.live?.url || CHANNEL)} type="button">
-                  {data.live ? "🔴 지금 방송 보기" : "▶ YouTube 채널 보기"}
+                  {data.live ? t("action.watchLive") : t("action.youtubeChannel")}
                 </button>
                 <button className="hero-secondary" onClick={() => openPage("settings")} type="button">🔔 방송 알림</button>
               </div>
@@ -177,7 +193,7 @@ export default function Hub() {
           <section className={"live-panel "+(data.live?"is-live":"")}>
             <div className="section-heading compact">
               <div><span className="section-label">LIVE NOW</span>
-                <h2>{data.live ? "지금 현주님이 방송 중이에요" : "지금은 방송이 없어요"}</h2>
+                <h2>{data.live ? "지금 현주님이 방송 중이에요" : t("live.noLive")}</h2>
               </div>
               <span className={"live-pill "+(data.live?"on":"")}><i/> {data.live?"LIVE":"OFF"}</span>
             </div>
@@ -197,13 +213,13 @@ export default function Hub() {
             ) : (
               <div className="offline-live">
                 <div className="offline-icon">🌙</div>
-                <div><strong>다음 방송을 기다리는 중이에요.</strong><p>방송이 시작되면 이곳에 바로 표시됩니다.</p></div>
+                <div><strong>{t("live.waiting")}</strong><p>{t("live.willAppear")}</p></div>
                 <button onClick={() => go(CHANNEL)} type="button">채널 보기 →</button>
               </div>
             )}
           </section>
 
-          <SectionTitle label="VIDEO" title="최근 영상" action="전체 영상 보기 →" onClick={() => openPage("videos")}/>
+          <SectionTitle label="VIDEO" title={t("section.recentVideos")} action={t("action.viewAllVideos")} onClick={() => openPage("videos")}/>
 
           <section className="video-grid">
             {data.loading
@@ -211,11 +227,11 @@ export default function Hub() {
               : data.videos.slice(0,6).map(v=><VideoCard key={v.id} v={v} go={go} fmt={fmt}/>)}
           </section>
 
-          {!data.loading && !data.videos.length && <div className="empty-card">표시할 영상이 없습니다.</div>}
+          {!data.loading && !data.videos.length && <div className="empty-card">{t("empty.videos")}</div>}
           <SectionTitle
             label="POST"
-            title="현주님의 소식"
-            action="YouTube에서 전체 보기 →"
+            title={t("section.news")}
+            action={t("action.viewAllPosts")}
             onClick={() => go(COMMUNITY)}
           />
 
@@ -278,7 +294,7 @@ export default function Hub() {
             )}
           </section>
 
-<SectionTitle label="LIVE HISTORY" title="최근 방송"/>
+<SectionTitle label="LIVE HISTORY" title={t("section.recentLives")}/>
           <section className="history-card">
             {data.recentLives.length
               ? data.recentLives.map(v =>
@@ -287,22 +303,22 @@ export default function Hub() {
                   <span className="history-copy"><strong>{v.title}</strong><small>{fmt(v.startedAt)} · 방송 기록</small></span>
                   <b>→</b>
                 </button>)
-              : <div className="empty-history">최근 방송 기록을 불러오는 중이거나 없습니다.</div>}
+              : <div className="empty-history">{t("history.empty")}</div>}
           </section>
 
-          <SectionTitle label="LINKS" title="현주님 링크"/>
+          <SectionTitle label="LINKS" title={t("section.links")}/>
           <section className="links-grid">
-            <LinkCard icon="▶" title="YouTube" text="방송과 영상을 만나보세요" onClick={() => go(CHANNEL)}/>
-            <LinkCard icon="💛" title="Toonation" text="현주님에게 응원 보내기" onClick={() => go(TOONATION)}/>
-            <LinkCard icon="💬" title="오픈채팅" text="함께 이야기해요" onClick={() => go(OPEN_CHAT)}/>
-            <LinkCard icon="📷" title="Instagram" text="현주님의 일상을 만나보세요" onClick={() => go(INSTAGRAM)}/>
-            <LinkCard icon="🧵" title="Threads" text="소소한 이야기를 만나보세요" onClick={() => go(THREADS)}/>
+            <LinkCard icon="▶" title="YouTube" text={t("links.youtube")} onClick={() => go(CHANNEL)}/>
+            <LinkCard icon="💛" title="Toonation" text={t("links.toonation")} onClick={() => go(TOONATION)}/>
+            <LinkCard icon="💬" title="오픈채팅" text={t("links.openChat")} onClick={() => go(OPEN_CHAT)}/>
+            <LinkCard icon="📷" title="Instagram" text={t("links.instagram")} onClick={() => go(INSTAGRAM)}/>
+            <LinkCard icon="🧵" title="Threads" text={t("links.threads")} onClick={() => go(THREADS)}/>
           </section>
 
           <section className="notice-banner">
             <div className="notice-symbol">🔔</div>
-            <div><span className="section-label">LIVE NOTIFICATION</span><h2>현주님이 방송을 시작하면 알려드릴게요.</h2><p>이 기기에서 방송 알림을 받을 수 있도록 설정할 수 있어요.</p></div>
-            <button onClick={() => openPage("settings")} type="button">알림 설정 →</button>
+            <div><span className="section-label">LIVE NOTIFICATION</span><h2>{t("notice.title")}</h2><p>{t("notice.description")}</p></div>
+            <button onClick={() => openPage("settings")} type="button">{t("action.notifications")}</button>
           </section>
 
           {data.error && <p className="error">{data.error}</p>}
@@ -311,7 +327,7 @@ export default function Hub() {
 
       {page === "videos" && (
         <main className="container sub-page">
-          <PageHeader emoji="🎥" title="영상" text="현주님의 최근 YouTube 영상을 모아봤어요." back={() => openPage("home")}/>
+          <PageHeader emoji="🎥" title={t("videos.title")} text={t("videos.description")} back={() => openPage("home")}/>
           <section className="video-grid large">{data.videos.map(v=><VideoCard key={v.id} v={v} go={go} fmt={fmt}/>)}</section>
         </main>
       )}
@@ -419,4 +435,12 @@ function publicKeyToUint8Array(base64String) {
   const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
   const rawData=window.atob(base64);
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+export default function Hub() {
+  return (
+    <I18nProvider>
+      <HubContent />
+    </I18nProvider>
+  );
 }

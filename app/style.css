@@ -1519,3 +1519,274 @@ button{
     font-size: 20px !important;
   }
 }
+
+/* LANGUAGE PICKER V1 */
+.language-picker {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  height:40px;
+  padding:0 9px;
+  border:1px solid rgba(88,64,150,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+  box-sizing:border-box;
+}
+
+.language-picker > span {
+  font-size:15px;
+  line-height:1;
+}
+
+.language-picker select {
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  padding:0 2px;
+}
+
+.language-picker select option {
+  color:#2f2835;
+  background:#fff;
+}
+
+@media (max-width:560px) {
+  .language-picker {
+    width:40px;
+    min-width:40px;
+    justify-content:center;
+    padding:0;
+  }
+
+  .language-picker > span {
+    font-size:17px;
+    pointer-events:none;
+  }
+
+  .language-picker select {
+    position:absolute;
+    width:40px;
+    height:40px;
+    opacity:0;
+    cursor:pointer;
+  }
+}
+
+/* LANGUAGE PICKER SAFE FINAL */
+.language-picker {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  height:40px;
+  padding:0 9px;
+  border:1px solid rgba(88,64,150,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+  box-sizing:border-box;
+}
+
+.language-picker > span {
+  font-size:15px;
+  line-height:1;
+}
+
+.language-picker select {
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+@media (max-width:560px) {
+  .language-picker {
+    width:40px;
+    min-width:40px;
+    justify-content:center;
+    padding:0;
+  }
+
+  .language-picker > span {
+    font-size:17px;
+    pointer-events:none;
+  }
+
+  .language-picker select {
+    position:absolute;
+    width:40px;
+    height:40px;
+    opacity:0;
+  }
+}
+
+/* LANGUAGE PICKER FINAL */
+.language-picker {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  height:40px;
+  padding:0 9px;
+  border:1px solid rgba(88,64,150,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+  box-sizing:border-box;
+}
+
+.language-picker > span {
+  font-size:15px;
+  line-height:1;
+}
+
+.language-picker select {
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.language-picker select option {
+  color:#2f2835;
+  background:#fff;
+}
+
+@media (max-width:560px) {
+  .language-picker {
+    width:40px;
+    min-width:40px;
+    justify-content:center;
+    padding:0;
+  }
+
+  .language-picker select {
+    position:absolute;
+    width:40px;
+    height:40px;
+    opacity:0;
+    cursor:pointer;
+  }
+
+  .language-picker > span {
+    pointer-events:none;
+    font-size:17px;
+  }
+}
+
+/* LANGUAGE PICKER FINAL SAFE */
+.language-picker {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  height:40px;
+  padding:0 9px;
+  border:1px solid rgba(88,64,150,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+  box-sizing:border-box;
+}
+
+.language-picker > span {
+  font-size:15px;
+  line-height:1;
+}
+
+.language-picker select {
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.language-picker select option {
+  color:#2f2835;
+  background:#fff;
+}
+
+@media (max-width:560px) {
+  .language-picker {
+    width:40px;
+    min-width:40px;
+    justify-content:center;
+    padding:0;
+  }
+
+  .language-picker > span {
+    font-size:17px;
+    pointer-events:none;
+  }
+
+  .language-picker select {
+    position:absolute;
+    width:40px;
+    height:40px;
+    opacity:0;
+    cursor:pointer;
+  }
+}
+
+
+/* LANGUAGE PICKER BASIC */
+.language-picker {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  height:40px;
+  padding:0 9px;
+  border:1px solid rgba(88,64,150,.14);
+  border-radius:12px;
+  background:rgba(255,255,255,.78);
+  box-sizing:border-box;
+}
+
+.language-picker > span {
+  font-size:16px;
+  line-height:1;
+}
+
+.language-picker select {
+  border:0;
+  outline:0;
+  background:transparent;
+  color:inherit;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.language-picker select option {
+  color:#2f2835;
+  background:#fff;
+}
+
+@media (max-width:560px) {
+  .language-picker {
+    width:40px;
+    min-width:40px;
+    justify-content:center;
+    padding:0;
+  }
+
+  .language-picker select {
+    position:absolute;
+    width:40px;
+    height:40px;
+    opacity:0;
+  }
+
+  .language-picker > span {
+    pointer-events:none;
+    font-size:17px;
+  }
+}
