@@ -15,6 +15,7 @@ export default function Hub() {
   const [page, setPage] = useState("home");
   const [communityPosts, setCommunityPosts] = useState([]);
   const [communityLoading, setCommunityLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/youtube")
@@ -55,7 +56,7 @@ export default function Hub() {
   }, []);
 
   const go = url => { if (url) window.location.assign(url); };
-  const openPage = p => { setPage(p); window.scrollTo({top:0,behavior:"smooth"}); };
+  const openPage = p => { setPage(p); setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); };
   const fmt = d => d ? new Date(d).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
 
   return (
@@ -73,7 +74,80 @@ export default function Hub() {
             <button onClick={() => go(COMMUNITY)} type="button">Post</button>
             <button onClick={() => go(TOONATION)} type="button">후원</button>
             <button className="header-bell" onClick={() => openPage("settings")} type="button">🔔</button>
+            <button
+              className={"menu-toggle " + (menuOpen ? "active" : "")}
+              onClick={() => setMenuOpen(v => !v)}
+              type="button"
+              aria-label="전체 메뉴"
+              aria-expanded={menuOpen}
+            >
+              <span>☰</span>
+              <small>전체 메뉴</small>
+            </button>
           </nav>
+
+          {menuOpen && (
+            <>
+              <button
+                className="menu-backdrop"
+                onClick={() => setMenuOpen(false)}
+                aria-label="메뉴 닫기"
+                type="button"
+              />
+              <aside className="menu-panel">
+                <div className="menu-panel-head">
+                  <div>
+                    <span className="section-label">MENU</span>
+                    <h2>현주의스토리.zip</h2>
+                  </div>
+                  <button
+                    className="menu-close"
+                    onClick={() => setMenuOpen(false)}
+                    type="button"
+                    aria-label="메뉴 닫기"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="menu-list">
+                  <button onClick={() => openPage("home")} type="button">
+                    🏠 <span>홈</span>
+                  </button>
+                  <button onClick={() => openPage("videos")} type="button">
+                    🎥 <span>최근 영상</span>
+                  </button>
+                  <button onClick={() => { go(COMMUNITY); setMenuOpen(false); }} type="button">
+                    📝 <span>현주님의 소식</span>
+                  </button>
+                  <button onClick={() => openPage("settings")} type="button">
+                    🔔 <span>방송 알림</span>
+                  </button>
+                </div>
+
+                <div className="menu-divider" />
+
+                <div className="menu-list">
+                  <button onClick={() => { go(CHANNEL); setMenuOpen(false); }} type="button">
+                    ▶️ <span>YouTube</span>
+                  </button>
+                  <button onClick={() => { go(TOONATION); setMenuOpen(false); }} type="button">
+                    💛 <span>Toonation</span>
+                  </button>
+                  <button onClick={() => { go(OPEN_CHAT); setMenuOpen(false); }} type="button">
+                    💬 <span>오픈채팅</span>
+                  </button>
+                  <button onClick={() => { go(INSTAGRAM); setMenuOpen(false); }} type="button">
+                    📷 <span>Instagram</span>
+                  </button>
+                  <button onClick={() => { go(THREADS); setMenuOpen(false); }} type="button">
+                    🧵 <span>Threads</span>
+                  </button>
+                </div>
+              </aside>
+            </>
+          )}
+          
         </div>
       </header>
 
