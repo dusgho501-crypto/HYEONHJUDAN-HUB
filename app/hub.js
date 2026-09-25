@@ -59,8 +59,8 @@ export default function Hub() {
           <section className="hero-section">
             <div className="hero-copy">
               <span className="eyebrow">HYEONJU'S LITTLE UNIVERSE</span>
-              <h1>현주님의<br/><em>작은 우주</em></h1>
-              <p>현주의 모든 순간을 한곳에 📦 만나보세요.</p>
+              <h1>현주의스토리.zip</h1>
+              <p>현주의 모든 순간을 한곳에 📦</p>
               <div className="hero-actions">
                 <button className="hero-primary" onClick={() => go(data.live?.url || CHANNEL)} type="button">
                   {data.live ? "🔴 지금 방송 보기" : "▶ YouTube 채널 보기"}
