@@ -3,13 +3,13 @@
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 
-const CACHE_SECONDS = 300;
+const CACHE_SECONDS = 60;
 
 function json(data, status = 200) {
   return NextResponse.json(data, {
     status,
     headers: {
-      "Cache-Control": `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=60`,
+      "Cache-Control": `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=10`,
     },
   });
 }
