@@ -1873,7 +1873,6 @@ button{
   max-width:560px;
   height:auto;
   object-fit:contain;
-  mix-blend-mode:multiply;
 }
 
 @media (max-width:800px){
@@ -1897,3 +1896,4 @@ button{
     max-width:100%;
   }
 }
+
