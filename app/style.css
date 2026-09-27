@@ -1790,3 +1790,37 @@ button{
     font-size:17px;
   }
 }
+
+
+/* =========================================
+   Hero 하단 장식 제거
+   - 하트/궤도 그래픽 제거
+   - 제거된 공간까지 자연스럽게 축소
+   ========================================= */
+
+.hero-orbit {
+  display: none !important;
+}
+
+.hero-section {
+  grid-template-columns: 1fr !important;
+  min-height: auto !important;
+}
+
+.hero-copy {
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  .hero-section {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-section {
+    min-height: auto !important;
+    padding-bottom: 25px !important;
+  }
+}
