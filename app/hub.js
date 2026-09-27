@@ -170,21 +170,21 @@ function HubContent() {
       {page === "home" && (
         <main className="container">
           <section className="hero-section">
-            <div className="hero-copy">
-              <span className="eyebrow">HYEONJU'S STORY.ZIP</span>
-              <h1>{t("brand.title")}</h1>
-              <p>{t("brand.tagline")}</p>
-              <div className="hero-actions">
-                <button className="hero-primary" onClick={() => go(data.live?.url || CHANNEL)} type="button">
-                  {data.live ? t("action.watchLive") : t("action.youtubeChannel")}
-                </button>
-                <button className="hero-secondary" onClick={() => openPage("settings")} type="button">🔔 방송 알림</button>
-              </div>
-            </div>
+      <div className="hero-copy">
+        <span className="eyebrow">HYEONJU'S STORY.ZIP</span>
 
-            <div className="hero-logo" aria-hidden="true">
-              <img src="/images/hyeonju-logo.png" alt="" />
-            </div></section>
+        <div className="hero-logo" aria-hidden="true">
+          <img src="/images/hyeonju-logo.png" alt="" />
+        </div>
+
+        <div className="hero-actions">
+          <button className="hero-primary" onClick={() => go(data.live?.url || CHANNEL)} type="button">
+            {data.live ? t("action.watchLive") : t("action.youtubeChannel")}
+          </button>
+          <button className="hero-secondary" onClick={() => openPage("settings")} type="button">🔔 방송 알림</button>
+        </div>
+      </div>
+    </section>
 
           <section className={"live-panel "+(data.live?"is-live":"")}>
             <div className="section-heading compact">

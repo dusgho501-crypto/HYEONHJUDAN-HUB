@@ -1859,3 +1859,41 @@ button{
     max-width:270px;
   }
 }
+.hero-logo{
+  width:min(560px,100%);
+  margin:4px auto 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.hero-logo img{
+  display:block;
+  width:100%;
+  max-width:560px;
+  height:auto;
+  object-fit:contain;
+  mix-blend-mode:multiply;
+}
+
+@media (max-width:800px){
+  .hero-logo{
+    width:min(520px,100%);
+    margin:0 auto 16px;
+  }
+
+  .hero-logo img{
+    max-width:520px;
+  }
+}
+
+@media (max-width:560px){
+  .hero-logo{
+    width:100%;
+    margin:0 auto 14px;
+  }
+
+  .hero-logo img{
+    max-width:100%;
+  }
+}
