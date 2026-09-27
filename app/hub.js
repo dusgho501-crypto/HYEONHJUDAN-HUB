@@ -171,7 +171,7 @@ function HubContent() {
         <main className="container">
           <section className="hero-section">
             <div className="hero-copy">
-              <span className="eyebrow">HYEONJU'S LITTLE UNIVERSE</span>
+              <span className="eyebrow">HYEONJU'S STORY.ZIP</span>
               <h1>{t("brand.title")}</h1>
               <p>{t("brand.tagline")}</p>
               <div className="hero-actions">
@@ -345,7 +345,7 @@ function HubContent() {
       )}
 
       <footer className="footer">
-        <div><strong>현주의스토리.zip</strong><span>HYEONJU'S LITTLE UNIVERSE</span></div>
+        <div><strong>현주의스토리.zip</strong><span>HYEONJU'S STORY.ZIP</span></div>
         <button onClick={() => openPage("home")} type="button">맨 위로 ↑</button>
       </footer>
     </div>
