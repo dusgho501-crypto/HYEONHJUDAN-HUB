@@ -182,13 +182,9 @@ function HubContent() {
               </div>
             </div>
 
-            <div className="hero-orbit" aria-hidden="true">
-              <div className="orbit orbit-1"/><div className="orbit orbit-2"/><div className="orbit orbit-3"/>
-              <div className="planet">💜</div>
-              <span className="star star-1">✦</span><span className="star star-2">✧</span>
-              <span className="star star-3">·</span><span className="star star-4">✦</span>
-            </div>
-          </section>
+            <div className="hero-logo" aria-hidden="true">
+              <img src="/images/hyeonju-logo.png" alt="" />
+            </div></section>
 
           <section className={"live-panel "+(data.live?"is-live":"")}>
             <div className="section-heading compact">

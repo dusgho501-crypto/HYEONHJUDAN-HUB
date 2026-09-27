@@ -1824,3 +1824,38 @@ button{
     padding-bottom: 25px !important;
   }
 }
+.hero-logo{
+  width:min(390px,100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto;
+}
+
+.hero-logo img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-width:390px;
+  object-fit:contain;
+}
+
+@media (max-width:800px){
+  .hero-logo{
+    width:min(320px,100%);
+  }
+
+  .hero-logo img{
+    max-width:320px;
+  }
+}
+
+@media (max-width:560px){
+  .hero-logo{
+    width:min(270px,100%);
+  }
+
+  .hero-logo img{
+    max-width:270px;
+  }
+}
